@@ -1,0 +1,298 @@
+﻿<Window x:Class="NFSMW12_Custom_Servers.LauncherWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MW12 Launcher"
+        Height="500" Width="650"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        Background="#1E1E2F"
+        AllowsTransparency="False">
+
+    <Window.Resources>
+        <!-- TabControl Style -->
+        <Style TargetType="TabControl">
+            <Setter Property="Background" Value="#2A2A40"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <!-- TabItem Style -->
+        <Style TargetType="TabItem">
+            <Setter Property="Background" Value="#2A2A40"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Margin" Value="2"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" 
+                                CornerRadius="6,6,0,0" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter ContentSource="Header" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#555577"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#444466"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Button Style -->
+        <Style x:Key="LauncherButton" TargetType="Button">
+            <Setter Property="Background" Value="#3A3A5A"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Margin" Value="0,0,10,0"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderBrush" Value="#555577"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4A4A7A"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#2A2A50"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+            <Setter Property="Background" Value="#2A2A40"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style TargetType="Separator">
+            <Setter Property="Margin" Value="2,1"/>
+            <Setter Property="Background" Value="#555577"/>
+            <Setter Property="Height" Value="1"/>
+        </Style>
+
+        <!-- GridView Column Header Style -->
+        <Style TargetType="GridViewColumnHeader">
+            <Setter Property="Background" Value="#2A2A40"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="BorderBrush" Value="#444"/>
+            <Setter Property="BorderThickness" Value="0,0,1,1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="GridViewColumnHeader">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#444466"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#555577"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Top Grid: MW12 Launcher + Menu -->
+        <Grid DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <!-- Top bar -->
+                <RowDefinition Height="Auto"/>
+                <!-- Menu -->
+            </Grid.RowDefinitions>
+
+            <!-- Top Bar -->
+            <Border Grid.Row="0" Background="#26263A" MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition Width="40"/>
+                        <ColumnDefinition Width="40"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="MWMP" VerticalAlignment="Center" Margin="10,0,0,0"
+                               FontWeight="Bold" Foreground="White"/>
+
+                    <Button Grid.Column="1" Background="#2A2A40" BorderThickness="0" ToolTip="Minimize" Click="Minimize_Click">
+                        <TextBlock Text="–" FontSize="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+
+                    <Button Grid.Column="2" Background="#2A2A40" BorderThickness="0" ToolTip="Close" Click="Close_Click">
+                        <TextBlock Text="×" FontSize="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+            </Border>
+
+            <!-- Menu -->
+            <Menu Grid.Row="1" BorderBrush="#2A2A40" Background="#2A2A40" Foreground="White">
+                <MenuItem Header="File">
+                    <MenuItem Header="Import Servers..." Click="ImportServers_Click"/>
+                    <MenuItem Header="Export Servers..." Click="ExportServers_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Exit" Click="Close_Click"/>
+                </MenuItem>
+
+                <MenuItem Header="Options">
+                    <MenuItem Header="Preferences..." Click="Preferences_Click"/>
+                </MenuItem>
+
+                <MenuItem Header="Help">
+                    <MenuItem Header="About" Click="About_Click"/>
+                </MenuItem>
+            </Menu>
+        </Grid>
+
+        <!-- Main Content -->
+        <Border BorderBrush="#444" BorderThickness="1" CornerRadius="8" Margin="10">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Tabs & ListViews -->
+                <TabControl Grid.Row="0" Margin="5" Background="#2A2A40" Foreground="White">
+                    <TabItem Header="Global">
+                        <ListView x:Name="GlobalListView" ItemsSource="{Binding GlobalServers}" MouseDoubleClick="ListView_MouseDoubleClick" SelectionMode="Single"
+                                  Background="#2A2A40" BorderBrush="#444" BorderThickness="1" Foreground="White">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Name" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#555577" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="IP" Width="120">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Ip}" Foreground="#FFDADA" FontWeight="SemiBold"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Mode" Width="80">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#444466" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Mode}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Tag" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#555577" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Tag}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </TabItem>
+
+                    <TabItem Header="Favorites">
+                        <ListView x:Name="FavoriteListView" ItemsSource="{Binding FavoriteServers}" MouseDoubleClick="ListView_MouseDoubleClick" SelectionMode="Single"
+                                  Background="#2A2A40" BorderBrush="#444" BorderThickness="1" Foreground="White">
+                            <ListView.View>
+                                <GridView>
+                                    <GridViewColumn Header="Name" Width="200">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#555577" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="IP" Width="120">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding Ip}" Foreground="#FFDADA" FontWeight="SemiBold"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Mode" Width="80">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#444466" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Mode}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                    <GridViewColumn Header="Tag" Width="100">
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#555577" CornerRadius="4" Padding="2,1" HorizontalAlignment="Center">
+                                                    <TextBlock Text="{Binding Tag}" Foreground="White" FontWeight="Bold"/>
+                                                </Border>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                </GridView>
+                            </ListView.View>
+                        </ListView>
+                    </TabItem>
+                </TabControl>
+
+                <!-- Bottom Buttons -->
+                <StackPanel Grid.Row="1" Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,15,15">
+                    <Button x:Name="AddButton" Width="100" Height="30" Content="Add" Click="AddButton_Click"
+                            Style="{StaticResource LauncherButton}"/>
+                    <Button x:Name="RefreshButton" Width="100" Height="30" Content="Refresh"
+                            Style="{StaticResource LauncherButton}"/>
+                    <Button x:Name="LaunchButton" Width="100" Height="30" Content="Launch"
+                            Style="{StaticResource LauncherButton}" Background="#4A90E2"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </DockPanel>
+</Window>

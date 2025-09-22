@@ -1,0 +1,44 @@
+﻿voipconnection��sendmask����recvmask����urecvmask���usendmask���recvvoice���voipheadsetpc-devchange�voip����prototunnel-tunnel��prototunnel-global-recv�prototunnel-global-send�GmUtil��TCP:~1:1024	UDP:~1:1024�%d.%d.%d.%d%s���failed��failure�probe���success�http://%s:%d/%s�����Cookie: sessionID=%s
+Content-Type: application/x-www-form-urlencoded
+�Cookie: sessionID=%s
+��http://%s:%d/getPeerAddress?myIP=%s&myPort=%d&version=1.0���status��peerPort����peerIP��sourcePort��sendCount���tag�targetPort��targetIP����sourceIP=%s
+sourcePort=%d
+tag=%s
+sendCount=%d
+��
+
+��connectionStatus����&latency=%d�myIP=%s&myPort=%d&version=1.0&status=%s&gameFeatureID=%s
+
+-----------------------------------------------
+
+Content-Type: application/x-www-form-urlencoded - describes form data that is sent in a single block in the HTTP message body
+
+TCP:~1:1024	UDP:~1:1024 - Possibly port ranges for TCP/UDP peer traffic.
+
+�Cookie: sessionID=%s
+
+-----------------------------------------------
+
+%s - string format specifier used in languages like C, C++, Python, etc.
+
+%d - is a format specifier generally represents a signed decimal integer in programming languages like C, Python, and Java, serving as a placeholder for an integer value in formatted output or input operations
+
+http:// | Http Hypertext Transfer Protocol - ||/\||The URL structure indicates a request to a server to retrieve peer address information, including parameters for the client's IP address, port, and version.||/\||
+
+-----------------------------------------------
+
+myIP=%s - myIP is a parameter in the URL query string that represents the IP address of the client making the request. The %s is a placeholder for a string value, which will be replaced with the actual IP address when the request is made.
+
+myPort=%d - myPort is a parameter in the URL query string that represents the port number of the client making the request. The %d is a placeholder for an integer value, which will be replaced with the actual port number when the request is made.
+
+version=1.0 - version is a parameter in the URL query string that indicates the version of the protocol or API being used. In this case, it is set to 1.0, which suggests that the client is using version 1.0 of the specified service or protocol.
+
+status - parameter in the URL query string that indicates the current state or condition of the client or connection. It is typically used to convey information about whether the client is online, offline, busy, or in another specific state.
+
+gameFeatureID=%s - gameFeatureID is a parameter in the URL query string that represents a specific identifier for a game feature. The %s is a placeholder for a string value, which will be replaced with the actual game feature ID when the request is made.
+
+&latency=%d - latency is a parameter in the URL query string that represents the delay or lag in communication between the client and server. The %d is a placeholder for an integer value, which will be replaced with the actual latency value (typically measured in milliseconds) when the request is made.
+
+connectionStatus - parameter in the URL query string that indicates the current status of the connection. It is typically used to convey information about whether the connection is active, inactive, or experiencing issues.
+
+-----------------------------------------------
