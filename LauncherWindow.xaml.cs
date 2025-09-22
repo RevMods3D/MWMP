@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -13,25 +16,60 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Xml;
 
-namespace NFSMW12_Custom_Servers
+namespace MWMP_Servers
 {
     /// <summary>
     /// Interaction logic for LauncherWindow.xaml
     /// </summary>
-    public partial class LauncherWindow : Window
+    public partial class LauncherWindow : Window, INotifyPropertyChanged
     {
-
+        public ObservableCollection<ServerInfo> GlobalServers { get; set; } = new ObservableCollection<ServerInfo>();
+        public ObservableCollection<ServerInfo> FavoriteServers { get; set; } = new ObservableCollection<ServerInfo>();
+        public ObservableCollection<PlayerInfo> Players { get; } = new ObservableCollection<PlayerInfo>();
         public ObservableCollection<ServerInfo> Servers { get; set; } = new ObservableCollection<ServerInfo>();
         private GridViewColumnHeader _lastHeaderClicked = null;
         private ListSortDirection _lastDirection = ListSortDirection.Ascending;
+        private static readonly HttpClient _httpClient = new HttpClient();
+        private readonly HttpClient httpClient = new HttpClient();
+
+        private ServerInfo _selectedServer;
+        public ServerInfo SelectedServer
+        {
+            get => _selectedServer;
+            set
+            {
+                if (_selectedServer != value)
+                {
+                    _selectedServer = value;
+                    OnPropertyChanged(nameof(SelectedServer));
+                }
+            }
+        }
+
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged(string propName) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
+
+        // Then in your selection changed event:
+        private void GlobalListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GlobalListView.SelectedItem is ServerInfo server)
+            {
+                SelectedServer = server;
+            }
+        }
 
         public LauncherWindow()
         {
             InitializeComponent();
+            _ = LoadGlobalServersAsync();
             this.Focus(); // Ensures window is focused
             Servers = new ObservableCollection<ServerInfo>();
-            FavoriteListView.ItemsSource = Servers;
-            GlobalListView.ItemsSource = Servers;
+
+            GlobalListView.ItemsSource = GlobalServers;
+            FavoriteListView.ItemsSource = FavoriteServers;
+
             DataContext = this;
         }
         ////// UI //////
@@ -83,18 +121,124 @@ namespace NFSMW12_Custom_Servers
             }
         }
 
+        private void ServerListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (GlobalListView.SelectedItem is ServerInfo server)
+            {
+                Players.Clear();
+                foreach (var player in server.PlayersList)
+                    Players.Add(player);
+            }
+            else
+            {
+                Players.Clear();
+            }
+        }
+
+        private void FavoriteListView_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (FavoriteListView.SelectedItem is ServerInfo server)
+                SelectedServer = server;
+        }
+
+        private async Task LoadGlobalServersAsync()
+        {
+            try
+            {
+                string url = "https://nodejs-production-d173.up.railway.app/api/servers";
+                string json = await _httpClient.GetStringAsync(url);
+
+                var servers = JsonConvert.DeserializeObject<List<ServerInfo>>(json);
+
+                if (servers != null)
+                {
+                    GlobalServers.Clear();
+                    foreach (var server in servers)
+                    {
+                        // Convert PlayersList from List<PlayerInfo> to ObservableCollection<PlayerInfo> if necessary
+                        if (server.PlayersList == null)
+                            server.PlayersList = new ObservableCollection<PlayerInfo>();
+                        else if (!(server.PlayersList is ObservableCollection<PlayerInfo>))
+                            server.PlayersList = new ObservableCollection<PlayerInfo>(server.PlayersList);
+
+                        foreach (var player in server.PlayersList)
+                        {
+                            Console.WriteLine($"{player.Name} - PPing: {player.PPing}, Time: {player.Time}");
+                        }
+
+                        GlobalServers.Add(server);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to load servers: {ex.Message}");
+            }
+        }
+
+        private async Task<ObservableCollection<PlayerInfo>> GetPlayersFromApiAsync(string serverIp)
+        {
+            try
+            {
+                string url = "https://nodejs-production-d173.up.railway.app/api/servers";
+                string json = await _httpClient.GetStringAsync(url);
+
+                var servers = JsonConvert.DeserializeObject<List<ServerInfo>>(json);
+
+                var server = servers?.Find(s => s.IP == serverIp);
+
+                // Already ObservableCollection<PlayerInfo>
+                return server?.PlayersList ?? new ObservableCollection<PlayerInfo>();
+            }
+            catch
+            {
+                return new ObservableCollection<PlayerInfo>();
+            }
+        }
+
+        private async void RefreshButton_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var json = await httpClient.GetStringAsync("https://nodejs-production-d173.up.railway.app/api/servers");
+                var serversFromApi = JsonConvert.DeserializeObject<List<ApiServer>>(json);
+
+                GlobalServers.Clear();
+
+                foreach (var apiServer in serversFromApi)
+                {
+                    var server = new ServerInfo
+                    {
+                        Name = apiServer.Name,
+                        IP = apiServer.IP,
+                        MaxPlayers = apiServer.MaxPlayers,
+                        Mode = apiServer.Mode,
+                        Tag = apiServer.Tag,
+                        Ping = apiServer.Ping
+                    };
+
+                    foreach (var p in apiServer.Players)
+                        server.PlayersList.Add(new PlayerInfo { Name = p.Name, PPing = p.PPing, Time = p.Time });
+
+                    GlobalServers.Add(server);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Failed to refresh servers: " + ex.Message);
+            }
+        }
+
         private void AddButton_Click(object sender, RoutedEventArgs e)
         {
-            var editor = new ServerEditorWindow()
-            {
-                Owner = this
-            };
+            var editor = new ServerEditorWindow() { Owner = this };
 
             if (editor.ShowDialog() == true)
             {
-                Servers.Add(editor.GetServer());
+                FavoriteServers.Add(editor.GetServer());
             }
         }
+
         private void EditServer_Click(object sender, RoutedEventArgs e)
         {
             if (FavoriteListView.SelectedItem is ServerInfo server)
@@ -112,6 +256,32 @@ namespace NFSMW12_Custom_Servers
             }
         }
 
+        private void AddToFavorites_Click(object sender, RoutedEventArgs e)
+        {
+            if (GlobalListView.SelectedItem is ServerInfo server)
+            {
+                // Avoid duplicates
+                if (!FavoriteServers.Any(s => s.IP == server.IP))
+                {
+                    FavoriteServers.Add(server);
+                    MessageBox.Show($"{server.Name} added to favorites!");
+                }
+                else
+                {
+                    MessageBox.Show($"{server.Name} is already in favorites.");
+                }
+            }
+        }
+
+        private void RemoveFromFavorites_Click(object sender, RoutedEventArgs e)
+        {
+            if (FavoriteListView.SelectedItem is ServerInfo server)
+            {
+                FavoriteServers.Remove(server);
+                MessageBox.Show($"{server.Name} removed from favorites.");
+            }
+        }
+
         private void ListViewItem_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (sender is ListViewItem item)
@@ -122,44 +292,22 @@ namespace NFSMW12_Custom_Servers
 
         private void GridViewColumnHeader_Click(object sender, RoutedEventArgs e)
         {
-            var headerClicked = e.OriginalSource as GridViewColumnHeader;
-            if (headerClicked?.Tag == null) return;
+            if (!(e.OriginalSource is GridViewColumnHeader headerClicked) || headerClicked.Column == null)
+                return;
 
-            string sortBy = headerClicked.Tag.ToString();
-            ListSortDirection direction;
+            string sortBy = headerClicked.Column.Header as string;
+            if (string.IsNullOrEmpty(sortBy))
+                return;
 
-            // Toggle sort direction if clicking the same header
-            if (headerClicked == _lastHeaderClicked)
-            {
-                direction = _lastDirection == ListSortDirection.Ascending
-                    ? ListSortDirection.Descending
-                    : ListSortDirection.Ascending;
-            }
-            else
-            {
-                direction = ListSortDirection.Ascending;
-            }
+            ListSortDirection direction = ListSortDirection.Ascending;
+            if (_lastHeaderClicked == headerClicked && _lastDirection == ListSortDirection.Ascending)
+                direction = ListSortDirection.Descending;
 
-            // Determine which ListView the header belongs to
-            ListView listView = null;
-            DependencyObject parent = headerClicked;
-            while (parent != null)
-            {
-                if (parent is ListView lv)
-                {
-                    listView = lv;
-                    break;
-                }
-                parent = VisualTreeHelper.GetParent(parent);
-            }
+            var dataView = CollectionViewSource.GetDefaultView(PlayerListView.ItemsSource);
 
-            if (listView != null)
-            {
-                var dataView = CollectionViewSource.GetDefaultView(listView.ItemsSource);
-                dataView.SortDescriptions.Clear();
-                dataView.SortDescriptions.Add(new SortDescription(sortBy, direction));
-                dataView.Refresh();
-            }
+            dataView.SortDescriptions.Clear();
+            dataView.SortDescriptions.Add(new SortDescription(sortBy, direction));
+            dataView.Refresh();
 
             _lastHeaderClicked = headerClicked;
             _lastDirection = direction;
@@ -170,15 +318,14 @@ namespace NFSMW12_Custom_Servers
             var dialog = new Microsoft.Win32.SaveFileDialog
             {
                 Filter = "JSON Files (*.json)|*.json",
-                FileName = "servers.json"
+                FileName = "favorite_servers.json"
             };
 
             if (dialog.ShowDialog() == true)
             {
-                var servers = (ObservableCollection<ServerInfo>)GlobalListView.ItemsSource;
-                string json = JsonConvert.SerializeObject(servers, Newtonsoft.Json.Formatting.Indented);
+                string json = JsonConvert.SerializeObject(FavoriteServers, Newtonsoft.Json.Formatting.Indented);
                 File.WriteAllText(dialog.FileName, json);
-                MessageBox.Show("Servers exported successfully!");
+                MessageBox.Show("Favorite servers exported successfully!");
             }
         }
         private void ImportServers_Click(object sender, RoutedEventArgs e)
@@ -191,15 +338,45 @@ namespace NFSMW12_Custom_Servers
             if (dialog.ShowDialog() == true)
             {
                 string json = File.ReadAllText(dialog.FileName);
-                var importedServers = JsonConvert.DeserializeObject<ObservableCollection<ServerInfo>>(json);
-                Servers.Clear();
+                var importedServers = JsonConvert.DeserializeObject<List<ServerInfo>>(json);
+
+                FavoriteServers.Clear();
                 if (importedServers != null)
                 {
                     foreach (var server in importedServers)
-                        Servers.Add(server);
+                        FavoriteServers.Add(server);
                 }
-                MessageBox.Show("Servers imported successfully!");
+                MessageBox.Show("Favorite servers imported successfully!");
             }
+        }
+        public class SecondsToMinutesConverter : IValueConverter
+        {
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                if (value is int seconds)
+                    return $"{seconds / 60:D2}:{seconds % 60:D2}";
+                return value;
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+                => throw new NotImplementedException();
+        }
+        public class ApiServer
+        {
+            public string Name { get; set; }
+            public string IP { get; set; }
+            public int MaxPlayers { get; set; }
+            public string Mode { get; set; }
+            public string Tag { get; set; }
+            public string Ping { get; set; }
+            public List<ApiPlayer> Players { get; set; } = new List<ApiPlayer>();
+        }
+
+        public class ApiPlayer
+        {
+            public string Name { get; set; }
+            public int PPing { get; set; }
+            public int Time { get; set; }
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using NFSMW12_Custom_Servers;
+﻿using MWMP_Servers;
 using System.Windows;
 
 namespace MWMP
@@ -26,7 +26,7 @@ namespace MWMP
 
             // Load values into textboxes
             NameTextBox.Text = this.server.Name;
-            IPTextBox.Text = this.server.Ip;
+            IPTextBox.Text = this.server.IP;
             ModeTextBox.Text = this.server.Mode;
             TagTextBox.Text = this.server.Tag;
 
@@ -38,7 +38,7 @@ namespace MWMP
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             server.Name = NameTextBox.Text;
-            server.Ip = IPTextBox.Text;
+            server.IP = IPTextBox.Text;
             server.Mode = ModeTextBox.Text;
             server.Tag = TagTextBox.Text;
 
